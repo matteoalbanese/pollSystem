@@ -1,0 +1,492 @@
+swagger: "2.0"
+info:
+  title: Poll System
+  contact:
+    name: NTT Data
+    url: https://it.nttdata.com/
+  version: 1.0.0
+basePath: /rest/api/v0
+
+
+paths:
+  /login:
+    post:
+      summary:  API per recuperare token di auth
+      operationId: postLogin
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/LoginRequest"
+      responses:
+        "200":
+          description: "Login eseguito con successo"
+          schema:
+            $ref: '#/definitions/LoginResponse'
+        "401":
+          description: "Login fallito"
+
+  /registration:
+    post:
+      summary:  API per creare un nuovo user
+      operationId: registration
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/RegistrationRequest"
+      responses:
+        "201":
+          description: "utente creato con successo"
+        "400":
+          description: "Impossibile creare l'utente"
+          schema:
+            $ref: '#/definitions/ValidationErrorResponse'
+  /polls:
+    post:
+      summary:  API per creare un nuovo poll
+      operationId: postPoll
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/Poll"
+      responses:
+        "201":
+          description: "poll creato con successo"
+          schema:
+            $ref: '#/definitions/Poll'
+        "401":
+          description: "Accesso non autorizzato"
+        "400":
+          description: "Poll validation fallita"
+          schema:
+            $ref: '#/definitions/ValidationErrorResponse'
+
+    get:
+      summary:  API per recuperare una lista di poll (api paginata)
+      operationId: getPolls
+      produces:
+        - application/json
+      parameters:
+        - name: search
+          description: ricerca per like nella question del poll
+          in: query
+          type: string
+        - $ref: '#/parameters/pageParam'
+        - $ref: '#/parameters/sizeParam'
+      responses:
+        "200":
+          description: "Pagina di Poll"
+          schema:
+            $ref: '#/definitions/PollListPage'
+        "401":
+          description: "Accesso non autorizzato"
+
+  /polls/{id}:
+    get:
+      summary:  API per recuperare  un poll
+      operationId: getPoll
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+      responses:
+        "404":
+          description: "Poll non esiste"
+        "200":
+          description: "Poll trovato"
+          schema:
+            $ref: '#/definitions/Poll'
+        "401":
+          description: "Accesso non autorizzato"
+
+    delete:
+      summary:  API per cancellare  un poll (solo l'owner può cancellare il proprio poll)
+      operationId: deletePoll
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+      responses:
+        "404":
+          description: "Poll non esiste"
+        "201":
+          description: "Poll Eliminato"
+        "401":
+          description: "Accesso non autorizzato"
+    put:
+      summary:  API per aggiornare  un poll (solo il proprietario del poll puo farlo), se il poll ha ricevuto almeno un voto non si puo aggiornare)
+      operationId: updatePoll
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/Poll"
+      responses:
+        "404":
+          description: "Poll non esiste"
+        "400":
+          description: "Poll non aggiornabile"
+        "201":
+          description: "Poll aggiornato"
+          schema:
+            $ref: '#/definitions/Poll'
+        "401":
+          description: "Accesso non autorizzato"
+
+  /polls/{id}/options:
+    post:
+      summary:  API per inserire una option in un poll (solo il properietario del poll puo farlo)
+      operationId: postPollOption
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/Option"
+      responses:
+        "201":
+          description: "Option creata con successo"
+          schema:
+            $ref: '#/definitions/Option'
+        "401":
+          description: "Accesso non autorizzato"
+
+  /polls/{id}/options/{optionId}/vote:
+    put:
+      summary:  API per votare una option del poll (il proprietario del poll non puo votare), se l utente ha gia votato il vecchio voto viene cancellato (si puo votare una sola option)
+      operationId: votePollOption
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+        - in: "path"
+          name: "optionId"
+          required: true
+          type: string
+      responses:
+        "201":
+          description: "Option aggiornata con successo"
+          schema:
+            $ref: '#/definitions/Option'
+        "401":
+          description: "Accesso non autorizzato"
+  /polls/{id}/vote:
+    get:
+      summary:  ritorna il voto dell'utente su un determinato poll
+      operationId: getvotePollOption
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: "Voto trovato"
+          schema:
+            $ref: '#/definitions/Vote'
+        "400":
+          description: "Nessun voto sul poll"
+        "401":
+          description: "Accesso non autorizzato"
+  /polls/{id}/options/{optionId}:
+    delete:
+      summary:  API per cancellare una option in un poll (solo il properietario del poll puo farlo). Se l'opzione ha già ricevuto un voto non si può cancellare
+      operationId: deletePollOption
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+        - in: "path"
+          name: "optionId"
+          required: true
+          type: string
+      responses:
+        "201":
+          description: "Option cancellata"
+        "401":
+          description: "Accesso non autorizzato"
+    put:
+      summary:  API per aggiornare una option in un poll (solo il properietario del poll puo farlo se l opzione non ha ancora ricevuto voti)
+      operationId: updatePollOption
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+        - in: "path"
+          name: "optionId"
+          required: true
+          type: string
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/Option"
+      responses:
+        "201":
+          description: "Option aggiornata con successo"
+          schema:
+            $ref: '#/definitions/Option'
+        "401":
+          description: "Accesso non autorizzato"
+    get:
+      summary:  API per recuperare una option in un poll
+      operationId: getPollOption
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+        - in: "path"
+          name: "optionId"
+          required: true
+          type: string
+      responses:
+        "201":
+          description: "Option trovata"
+          schema:
+            $ref: '#/definitions/Option'
+        "401":
+          description: "Accesso non autorizzato"
+
+  /polls-details/{id}:
+    get:
+      summary:  API per recuperare  un poll details
+      operationId: getPollDetails
+      produces:
+        - application/json
+      parameters:
+        - in: "path"
+          name: "id"
+          required: true
+          type: string
+      responses:
+        "404":
+          description: "Poll non esiste"
+        "201":
+          description: "Poll trovato"
+          schema:
+            $ref: '#/definitions/PollDetails'
+        "401":
+          description: "Accesso non autorizzato"
+parameters:
+  pageParam:
+    description: The page number (zero-based index)
+    name: page
+    type: integer
+    in: query
+    required: true
+  sizeParam:
+    name: size
+    type: integer
+    in: query
+    description: The number of records per page
+    required: true
+
+definitions:
+  RegistrationRequest:
+    type: object
+    required:
+      - username
+      - password
+      - email
+    properties:
+      username:
+        type: string
+        description: univoco all interno della piattaforma
+      password:
+        type: string
+        minLength: 8
+        description: lunga almeno 8 caratteri e contenente almeno un numero, una lettera minuscola e una maiuscola
+      email:
+        type: string
+        description: deve essere univoca nella piattaforma e deve avere il formato di una mail
+
+  LoginRequest:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+  LoginResponse:
+    type: object
+    required:
+      - token
+      - expiresAt
+    properties:
+      token:
+        type: string
+        description: Codice Fattura univoco
+      expiresAt:
+        type: string
+        format: date-time
+  ValidationErrorResponse:
+    type: object
+    properties:
+      timestamp:
+        type: string
+        format: date-time
+      status:
+        type: integer
+      message:
+        type: string
+      path:
+        type: string
+  Option:
+    type: object
+    properties:
+      message:
+        type: string
+      id:
+        type: integer
+        description: non valorizzato in richiesta ma solo in risposta
+      createdAt:
+        type: string
+        format: date-time
+  Vote:
+    type: object
+    properties:
+      optionId:
+        type: string
+      id:
+        type: integer
+        description: non valorizzato in richiesta ma solo in risposta
+      votedAt:
+        type: string
+        format: date-time
+  Poll:
+    type: object
+    properties:
+      question:
+        type: string
+      id:
+        type: integer
+        description: non valorizzato in richiesta ma solo in risposta
+      owner:
+        type: string
+        description: owner del poll (username)
+      expiresAt:
+        type: string
+        format: date-time
+        description: scadenza poll
+      status:
+        type: string
+        description: non valorizzato in richiesta ma solo in risposta (ACTIVE/EXPIRED)
+  PollDetails:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: non valorizzato in richiesta ma solo in risposta
+      owner:
+        type: string
+        description: owner del poll
+      expiresAt:
+        type: string
+        format: date-time
+        description: scadenza poll
+      status:
+        type: string
+        description: non valorizzato in richiesta ma solo in risposta (ACTIVE/EXPIRED)
+      winner:
+        $ref: '#/definitions/WinnerOption'
+        description: valorizzato solo se il poll è scaduto
+      options:
+        type: array
+        items:
+          $ref: '#/definitions/Option'
+  WinnerOption:
+    type: object
+    properties:
+      pollId:
+        type: integer
+      optionId:
+        type: integer
+      percentOfWiner:
+        description: percentuale dell opzione vincente
+        type: number
+  Page:
+    type: object
+    properties:
+      #      content:
+      #        type: array
+      #        items:
+      #          type: object
+      first:
+        type: boolean
+      last:
+        type: boolean
+      size:
+        type: integer
+      totalElements:
+        type: integer
+      totalPages:
+        type: integer
+      number:
+        type: integer
+    required:
+      #      - content
+      - first
+      - last
+      - size
+      - totalElements
+      - totalPages
+      - number
+  PollListPage:
+    description: Paged issuer list
+    allOf:
+      - $ref: '#/definitions/Page'
+      - type: object
+        properties:
+          contents:
+            type: array
+            items:
+              $ref: '#/definitions/Poll'
+        required:
+          - contents
