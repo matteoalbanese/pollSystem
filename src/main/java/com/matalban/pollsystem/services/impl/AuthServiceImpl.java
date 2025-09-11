@@ -2,9 +2,9 @@ package com.matalban.pollsystem.services.impl;
 
 
 import com.matalban.pollsystem.domain.UserAccount;
-import com.matalban.pollsystem.dto.LoginRequest;
-import com.matalban.pollsystem.dto.LoginResponse;
-import com.matalban.pollsystem.dto.RegistrationRequest;
+import com.matalban.pollsystem.api.v0.dto.LoginRequest;
+import com.matalban.pollsystem.api.v0.dto.LoginResponse;
+import com.matalban.pollsystem.api.v0.dto.RegistrationRequest;
 import com.matalban.pollsystem.jwt.JwtUtils;
 import com.matalban.pollsystem.repositories.UserRepository;
 import com.matalban.pollsystem.services.AuthService;
@@ -57,6 +57,8 @@ public class AuthServiceImpl implements AuthService {
 
        SecurityContextHolder.getContext().setAuthentication(authentication);
        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+       System.out.println(userDetails.getUsername());
+
        String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
 
        return new LoginResponse(userDetails.getUsername(), jwtToken);

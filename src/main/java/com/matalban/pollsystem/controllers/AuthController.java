@@ -2,7 +2,10 @@ package com.matalban.pollsystem.controllers;
 
 
 
-import com.matalban.pollsystem.dto.*;
+import com.matalban.pollsystem.api.v0.dto.LoginRequest;
+import com.matalban.pollsystem.api.v0.dto.LoginResponse;
+import com.matalban.pollsystem.api.v0.dto.RegistrationRequest;
+import com.matalban.pollsystem.api.v0.dto.ValidationErrorResponse;
 
 import com.matalban.pollsystem.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;

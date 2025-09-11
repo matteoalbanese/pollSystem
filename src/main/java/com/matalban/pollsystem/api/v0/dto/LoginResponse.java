@@ -1,4 +1,4 @@
-package com.matalban.pollsystem.dto;
+package com.matalban.pollsystem.api.v0.dto;
 
 
 import lombok.Getter;

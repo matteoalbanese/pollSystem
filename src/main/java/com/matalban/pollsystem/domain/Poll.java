@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -15,7 +14,7 @@ public class Poll {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne()
     @JoinColumn(name = "owner_id")
@@ -25,8 +24,8 @@ public class Poll {
     private List<Option> options;
 
     private String question;
-    private Status status;
-    private Date expirationDate;
+    private String status;
+    private String expirationDate;
 
 
 }
