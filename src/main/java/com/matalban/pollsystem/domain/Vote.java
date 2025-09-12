@@ -11,7 +11,7 @@ public class Vote {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private Integer id;
 
     @OneToOne
     @JoinColumn(name = "user_id")
@@ -21,5 +21,5 @@ public class Vote {
     @JoinColumn(name = "option_id")
     private Option option;
 
-    private String date;
+    private String votedAt;
 }

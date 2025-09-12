@@ -9,11 +9,12 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Table(name = "poll_option")
 public class Option {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @OneToMany(mappedBy = "option")
     private List<Vote> vote;
@@ -28,7 +29,7 @@ public class Option {
     private String createdAt;
 
     //default false, cambia a true quando viene calcolato il vincitore
-    private Boolean winner;
+    private Boolean winner = false ;
     private Double percentage;
 
 }

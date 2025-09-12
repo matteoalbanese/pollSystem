@@ -38,6 +38,7 @@ public class PollMapper {
         if (pollDto == null) {return null;}
 
         Poll poll = new Poll();
+        //TODO check
         poll.setId(pollDto.getId());
         poll.setQuestion(pollDto.getQuestion());
         poll.setExpirationDate(pollDto.getExpiresAt());

@@ -104,8 +104,9 @@ public class PollServiceImpl implements PollService {
 
         //persistenza delle modifiche
 
-        pollRepository.save(pollMapper.pollDtoToPoll(pollDto));
+        Poll pollSaved = pollMapper.pollDtoToPoll(pollDto);
+        pollRepository.save(pollSaved);
 
-        return null;
+        return pollMapper.pollToPollDto(pollSaved);
     }
 }

@@ -18,7 +18,7 @@ public class UserAccount implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Integer id;
 
     private String username;
     private String password;
