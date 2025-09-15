@@ -15,6 +15,7 @@ public class OptionMapper {
     public Option optionDtoToOption(OptionDto optionDto) {
 
         Option option = new Option();
+        option.setId(optionDto.getId());
         option.setOptionName(optionDto.getMessage());
         option.setCreatedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return option;
