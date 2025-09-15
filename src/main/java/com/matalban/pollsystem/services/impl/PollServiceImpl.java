@@ -1,12 +1,14 @@
 package com.matalban.pollsystem.services.impl;
 
 import com.matalban.pollsystem.api.v0.dto.PollDto;
-import com.matalban.pollsystem.api.v0.dto.PollListPage;
 import com.matalban.pollsystem.api.v0.mappers.PollMapper;
 import com.matalban.pollsystem.domain.Poll;
 import com.matalban.pollsystem.domain.UserAccount;
 import com.matalban.pollsystem.repositories.PollRepository;
 import com.matalban.pollsystem.services.PollService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -65,10 +67,11 @@ public class PollServiceImpl implements PollService {
     }
 
     @Override
-    public PollListPage getPollListPage(Integer pageParam, Integer sizeParam) {
+    public Page <PollDto> getPollListPage(Integer pageParam, Integer sizeParam) {
 
-        //capire come funziona la paginazione
-        return null;
+        Pageable params  = PageRequest.of(pageParam, sizeParam);
+        Page<Poll> page=  pollRepository.findAll(params);
+        return page.map(pollMapper::pollToPollDto);
     }
 
     @Override
