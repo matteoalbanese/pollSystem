@@ -24,10 +24,9 @@ public class OptionMapper {
     public OptionDto optionToOptionDto(Option option) {
 
         OptionDto optionDto = new OptionDto();
-        optionDto.setId(optionDto.getId());
+        optionDto.setId(option.getId());
         optionDto.setMessage(option.getOptionName());
         optionDto.setCreatedAt(option.getCreatedAt());
-
 
         return optionDto;
 

@@ -99,7 +99,7 @@ public class OptionServiceImpl implements OptionService {
     public OptionDto vote(Integer pollId, Integer optionId) {
 
         validatePollOption(pollId, optionId);
-        UserAccount userAccount= getLoggedUserAccount();
+        UserAccount userAccount = getLoggedUserAccount();
         //check he l'utente non sia il proprietario del poll
         if (pollRepository.findById(pollId)
                 .orElseThrow()

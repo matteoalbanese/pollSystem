@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS vote(
     option_id BIGINT,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES user_account(id),
     CONSTRAINT fk_option FOREIGN KEY (option_id) REFERENCES poll_option(id),
-    votedAt VARCHAR(255)
+    voted_at VARCHAR(255)
 );
 
 
