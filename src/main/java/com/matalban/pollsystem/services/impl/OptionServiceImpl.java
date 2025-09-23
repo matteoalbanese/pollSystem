@@ -4,10 +4,7 @@ import com.matalban.pollsystem.api.v0.dto.OptionDto;
 import com.matalban.pollsystem.api.v0.dto.VoteDto;
 import com.matalban.pollsystem.api.v0.mappers.OptionMapper;
 import com.matalban.pollsystem.api.v0.mappers.VoteMapper;
-import com.matalban.pollsystem.domain.Option;
-import com.matalban.pollsystem.domain.Poll;
-import com.matalban.pollsystem.domain.UserAccount;
-import com.matalban.pollsystem.domain.Vote;
+import com.matalban.pollsystem.domain.*;
 import com.matalban.pollsystem.repositories.OptionRepository;
 import com.matalban.pollsystem.repositories.PollRepository;
 import com.matalban.pollsystem.repositories.VoteRepository;
@@ -47,7 +44,7 @@ public class OptionServiceImpl implements OptionService {
                 .getOwner()
                 .getUsername()
                 .equals(getLoggedUserAccount().getUsername()))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of the poll");
 
         Option option = optionMapper.optionDtoToOption(optionDto);
 
@@ -64,7 +61,6 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public void deleteOption(Integer pollId, Integer optionId) {
 
-        validatePollOption(pollId, optionId);
 
         //check the user is the owner
         if (!pollRepository.findById(pollId)
@@ -72,7 +68,9 @@ public class OptionServiceImpl implements OptionService {
                 .getOwner()
                 .getUsername()
                 .equals(getLoggedUserAccount().getUsername()))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of the poll");
+        if (!optionRepository.existsById(optionId))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id "+ optionId + " not found");
 
         optionRepository.deleteById(optionId);
     }
@@ -81,15 +79,11 @@ public class OptionServiceImpl implements OptionService {
     public OptionDto updateOption(Integer pollId, Integer optionId, OptionDto optionDto) {
 
 
-        validatePollOption(pollId, optionId);
-
-        //controllare che non ci siano voti per quel poll
-        //un metodo oppure un attributo da modificare per poll isVoted()
-        //valido e creo l'entità option
-
-        Option option = optionMapper.optionDtoToOption(optionDto);
-        Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId.toString() + " not found"));
-        option.setPoll(poll);
+        pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId+ " not found"));
+        Option option = optionRepository.findById(optionId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id " + optionId + " not found"));
+        LocalDateTime now = LocalDateTime.now();
+        option.setOptionName(optionDto.getMessage());
+        option.setCreatedAt(now.format(DateTimeFormatter.ISO_DATE_TIME));
         optionRepository.save(option);
 
         return  optionMapper.optionToOptionDto(option);
@@ -98,24 +92,32 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public OptionDto vote(Integer pollId, Integer optionId) {
 
-        validatePollOption(pollId, optionId);
         UserAccount userAccount = getLoggedUserAccount();
         //check he l'utente non sia il proprietario del poll
-        if (pollRepository.findById(pollId)
-                .orElseThrow()
-                .getOwner()
+        Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"));
+
+
+        //il proprietario non può votare
+        if (poll.getOwner()
                 .getUsername()
                 .equals(userAccount.getUsername()))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are the owner of the poll");
 
         //creazione di un entità vote e salvataggio nella repo corretta
 
-        Option option = optionRepository.findById(optionId).get();
+        Option option = optionRepository.findByPollIdAndId(pollId,optionId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id " + optionId + " not found"));
+
         Vote vote = new Vote();
         vote.setUser(userAccount);
         vote.setOption(option);
         vote.setVotedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         voteRepository.save(vote);
+        if(poll.getStatus().equals(Status.ACTIVE)) {
+            poll.setStatus(Status.VOTED);
+            pollRepository.save(poll);
+        }
+
+
         return optionMapper.optionToOptionDto(option);
 
     }
@@ -123,7 +125,7 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public VoteDto getVote(Integer pollId) {
 
-        return voteMapper.voteToVoteDto(voteRepository.findByOption_Poll_IdAndUser_Id(pollId, getLoggedUserAccount().getId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND)));
+        return voteMapper.voteToVoteDto(voteRepository.findByOption_Poll_IdAndUser_Id(pollId, getLoggedUserAccount().getId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll or option not found ")));
 
 
     }
@@ -131,8 +133,13 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public OptionDto getOption(Integer pollId, Integer optionId) {
 
-        validatePollOption(pollId, optionId);
-        return optionMapper.optionToOptionDto(optionRepository.findByPollIdAndId(pollId, optionId).get());
+        if (!pollRepository.existsById(pollId))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found");
+
+
+        return optionMapper.optionToOptionDto(
+                optionRepository.findByPollIdAndId(pollId, optionId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id " + optionId + " not found")));
 
     }
 
@@ -141,20 +148,12 @@ public class OptionServiceImpl implements OptionService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of the poll");
         }
 
         return (UserAccount) authentication.getPrincipal();
 
     }
 
-    public void validatePollOption(Integer pollId, Integer optionId) {
 
-        //controllo che poll e option esistano
-        if (!pollRepository.existsById(pollId))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found");
-        if (!optionRepository.existsById(optionId))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id "+ optionId + " not found");
-
-    }
 }

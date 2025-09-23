@@ -3,6 +3,7 @@ package com.matalban.pollsystem.services.impl;
 import com.matalban.pollsystem.api.v0.dto.PollDto;
 import com.matalban.pollsystem.api.v0.mappers.PollMapper;
 import com.matalban.pollsystem.domain.Poll;
+import com.matalban.pollsystem.domain.Status;
 import com.matalban.pollsystem.domain.UserAccount;
 import com.matalban.pollsystem.repositories.PollRepository;
 import com.matalban.pollsystem.services.PollService;
@@ -42,15 +43,13 @@ public class PollServiceImpl implements PollService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not logged in");
         }
-
 
         //Dto username match the user logged in
         UserAccount userAccount = (UserAccount) authentication.getPrincipal();
-        System.out.println("user logged "+ userAccount.getUsername());
         if (userAccount.getUsername().isEmpty() || !userAccount.getUsername().equals(pollDto.getOwner())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid poll owner");
         }
 
         //dto inserted validation controls
@@ -76,7 +75,7 @@ public class PollServiceImpl implements PollService {
 
     @Override
     public PollDto getPoll(Integer pollId) {
-        Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"));
         return pollMapper.pollToPollDto(poll);
 
     }
@@ -87,12 +86,12 @@ public class PollServiceImpl implements PollService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not logged in");
         }
-        Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id" + pollId + " not found"));
         UserAccount userAccount = (UserAccount) authentication.getPrincipal();
-        if (poll.getOwner().getUsername().equals(userAccount.getUsername()))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        if (!poll.getOwner().getUsername().equals(userAccount.getUsername()))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of this poll");
 
         pollRepository.delete(poll);
     }
@@ -100,16 +99,23 @@ public class PollServiceImpl implements PollService {
     @Override
     public PollDto updatePoll(Integer id,PollDto pollDto) {
 
-        if (pollRepository.findById(id).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Poll existingPoll = pollRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id" + id + " not found"));
+
+        if(!existingPoll.getStatus().equals(Status.ACTIVE))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Some options in the poll have been voted, the poll cannot be updated");
+
+        UserAccount userAccount = (UserAccount) authentication.getPrincipal();
+        if (!existingPoll.getOwner().getUsername().equals(userAccount.getUsername()))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of this poll");
+
+        existingPoll.setQuestion(pollDto.getQuestion());
+        existingPoll.setExpirationDate(pollDto.getExpiresAt());
         //controlli validità pollDto
 
         //persistenza delle modifiche
+        pollRepository.save(existingPoll);
 
-        Poll pollSaved = pollMapper.pollDtoToPoll(pollDto);
-        pollRepository.save(pollSaved);
-
-        return pollMapper.pollToPollDto(pollSaved);
+        return pollMapper.pollToPollDto(existingPoll);
     }
 }

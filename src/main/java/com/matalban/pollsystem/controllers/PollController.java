@@ -1,8 +1,6 @@
 package com.matalban.pollsystem.controllers;
 
 import com.matalban.pollsystem.api.v0.dto.PollDto;
-
-
 import com.matalban.pollsystem.services.PollService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -24,7 +22,6 @@ public class PollController {
 
     @PostMapping()
     public ResponseEntity<PollDto> createPoll(@RequestBody PollDto pollDto) {
-        System.out.println("createPoll 1 controller");
             return new ResponseEntity<>(pollService.createPoll(pollDto), HttpStatus.CREATED);
     }
 
@@ -45,7 +42,7 @@ public class PollController {
     @DeleteMapping("{id}")
     public ResponseEntity<String> deletePoll(@PathVariable Integer id) {
         pollService.deletePoll(id);
-        return  new ResponseEntity<>(HttpStatus.OK);
+        return  new ResponseEntity<>("Poll with id "+ id.toString() + " deleted",HttpStatus.OK);
     }
 
 }

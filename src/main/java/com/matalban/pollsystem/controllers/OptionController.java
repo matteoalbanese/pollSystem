@@ -3,7 +3,6 @@ package com.matalban.pollsystem.controllers;
 import com.matalban.pollsystem.api.v0.dto.OptionDto;
 import com.matalban.pollsystem.api.v0.dto.VoteDto;
 import com.matalban.pollsystem.services.OptionService;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +26,7 @@ public class OptionController {
     @DeleteMapping("/{id}/options/{optionId}")
     public ResponseEntity<String> deleteOption(@PathVariable Integer id, @PathVariable Integer optionId){
         optionService.deleteOption(id, optionId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>("Option with id "+ optionId.toString() + " deleted",HttpStatus.OK);
     }
 
     @PutMapping("/{id}/options/{optionId}")

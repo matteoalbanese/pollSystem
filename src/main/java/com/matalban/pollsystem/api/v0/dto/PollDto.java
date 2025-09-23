@@ -1,5 +1,6 @@
 package com.matalban.pollsystem.api.v0.dto;
 
+import com.matalban.pollsystem.domain.Status;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,5 +12,5 @@ public class PollDto {
     private Integer id;
     private String question;
     private String expiresAt;
-    private String status;
+    private Status status;
 }

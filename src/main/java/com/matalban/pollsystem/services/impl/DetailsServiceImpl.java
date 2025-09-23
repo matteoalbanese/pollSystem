@@ -5,7 +5,6 @@ import com.matalban.pollsystem.api.v0.mappers.DetailsMapper;
 import com.matalban.pollsystem.domain.Poll;
 import com.matalban.pollsystem.repositories.PollRepository;
 import com.matalban.pollsystem.services.DetailsService;
-
 import org.springframework.stereotype.Service;
 
 

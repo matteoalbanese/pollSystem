@@ -24,7 +24,7 @@ public class Poll {
     private List<Option> options;
 
     private String question;
-    private String status;
+    private Status status;
     private String expirationDate;
 
 
