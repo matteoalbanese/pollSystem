@@ -4,8 +4,7 @@ import com.matalban.pollsystem.api.v0.dto.OptionDto;
 import com.matalban.pollsystem.domain.Option;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 @Component
 public class OptionMapper {
@@ -16,7 +15,7 @@ public class OptionMapper {
         Option option = new Option();
         option.setId(optionDto.getId());
         option.setOptionName(optionDto.getMessage());
-        option.setCreatedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        option.setCreatedAt(new Date());
         return option;
     }
 

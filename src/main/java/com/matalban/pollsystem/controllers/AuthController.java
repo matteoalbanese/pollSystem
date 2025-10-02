@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/rest/api/v0")
@@ -32,8 +32,7 @@ public class AuthController {
         System.out.println("controller Reg started");
         String message = authService.register(registrationRequest);
         if(message.equals("Impossibile creare l'utente")){
-            LocalDateTime now = LocalDateTime.now();
-            return new ResponseEntity<>(new ValidationErrorResponse(now.toString(),message,request.getRequestURI()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ValidationErrorResponse(new Date(),message,request.getRequestURI()), HttpStatus.BAD_REQUEST);
         }
         System.out.println("controller Reg successfully executed");
         return new ResponseEntity<>("utente creato con successo", HttpStatus.OK);

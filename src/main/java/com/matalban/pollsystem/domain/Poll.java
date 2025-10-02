@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -20,12 +21,15 @@ public class Poll {
     @JoinColumn(name = "owner_id")
     private UserAccount owner;
 
-    @OneToMany(mappedBy = "poll")
+    @OneToMany(mappedBy = "poll",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Option> options;
 
     private String question;
-    private Status status;
-    private String expirationDate;
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
+    private Date expirationDate;
+
+    private Integer totalVote = 0;
 
 }

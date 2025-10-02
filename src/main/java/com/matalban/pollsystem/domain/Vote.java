@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Entity
 @Getter
 @Setter
@@ -21,5 +23,5 @@ public class Vote {
     @JoinColumn(name = "option_id")
     private Option option;
 
-    private String votedAt;
+    private Date votedAt;
 }

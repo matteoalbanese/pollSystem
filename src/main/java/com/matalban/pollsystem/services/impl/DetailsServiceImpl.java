@@ -1,6 +1,7 @@
 package com.matalban.pollsystem.services.impl;
 
 import com.matalban.pollsystem.api.v0.dto.PollDetails;
+import com.matalban.pollsystem.api.v0.dto.WinnerOption;
 import com.matalban.pollsystem.api.v0.mappers.DetailsMapper;
 import com.matalban.pollsystem.domain.Poll;
 import com.matalban.pollsystem.repositories.PollRepository;
@@ -27,6 +28,18 @@ public class DetailsServiceImpl implements DetailsService {
         //mappa i campi nell'oggetto poll Details
         System.out.println("getPollDetails");
         Poll poll = pollRepository.findById(id).orElseThrow(()-> new RuntimeException( "Poll id not found"));
-        return detailsMapper.getDetailsFromPoll(poll);
+        PollDetails pollDetails =detailsMapper.getDetailsFromPoll(poll);
+        poll.getOptions().stream()
+                .filter(o -> Boolean.TRUE.equals(o.getWinner()))
+                .findFirst()
+                .ifPresent(o -> {
+                    WinnerOption winner = new WinnerOption();
+                    winner.setPollId(poll.getId());
+                    winner.setOptionId(o.getId());
+                    winner.setPercentOfWinner(o.getPercentage());
+                    pollDetails.setWinnerOption(winner);
+                });
+
+        return pollDetails;
     }
 }

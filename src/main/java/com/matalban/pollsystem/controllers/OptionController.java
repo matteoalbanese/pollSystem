@@ -44,7 +44,7 @@ public class OptionController {
         return new ResponseEntity<>(optionService.vote(id, optionId), HttpStatus.OK);
     }
     
-    @GetMapping("/polls/{id}/vote")
+    @GetMapping("/{id}/vote")
     public ResponseEntity<VoteDto> getVote(@PathVariable Integer id){
         return new ResponseEntity<>(optionService.getVote(id), HttpStatus.OK);
     }

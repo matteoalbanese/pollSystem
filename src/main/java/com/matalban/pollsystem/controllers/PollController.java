@@ -2,6 +2,7 @@ package com.matalban.pollsystem.controllers;
 
 import com.matalban.pollsystem.api.v0.dto.PollDto;
 import com.matalban.pollsystem.services.PollService;
+import io.micrometer.common.lang.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class PollController {
     }
 
     @PostMapping()
-    public ResponseEntity<PollDto> createPoll(@RequestBody PollDto pollDto) {
+    public ResponseEntity<PollDto> createPoll(@RequestBody @NonNull PollDto pollDto) {
             return new ResponseEntity<>(pollService.createPoll(pollDto), HttpStatus.CREATED);
     }
 
@@ -31,16 +32,16 @@ public class PollController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PollDto> getPoll(@PathVariable Integer id){
+    public ResponseEntity<PollDto> getPoll(@PathVariable @NonNull Integer id){
         return new  ResponseEntity<>(pollService.getPoll(id),HttpStatus.OK);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<PollDto> updatePoll(@PathVariable Integer id, @RequestBody PollDto pollDto) {
+    public ResponseEntity<PollDto> updatePoll(@PathVariable @NonNull Integer id, @RequestBody PollDto pollDto) {
         return  new ResponseEntity<>(pollService.updatePoll(id, pollDto), HttpStatus.OK);
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<String> deletePoll(@PathVariable Integer id) {
+    public ResponseEntity<String> deletePoll(@PathVariable  Integer id) {
         pollService.deletePoll(id);
         return  new ResponseEntity<>("Poll with id "+ id.toString() + " deleted",HttpStatus.OK);
     }

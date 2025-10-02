@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS poll(
     question VARCHAR(255),
     expiration_date VARCHAR(255),
     owner_id BIGINT,
+    total_vote INT,
     CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES user_account(id)
 );
 

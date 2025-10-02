@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -16,7 +17,7 @@ public class Option {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToMany(mappedBy = "option")
+    @OneToMany(mappedBy = "option", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> vote;
 
     @ManyToOne
@@ -26,7 +27,7 @@ public class Option {
     private String optionName;
 
     //capire come saranno rappresentati i timestamp
-    private String createdAt;
+    private Date createdAt;
 
     //default false, cambia a true quando viene calcolato il vincitore
     private Boolean winner = false ;

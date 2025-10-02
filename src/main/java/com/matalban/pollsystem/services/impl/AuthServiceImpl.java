@@ -8,6 +8,7 @@ import com.matalban.pollsystem.domain.UserAccount;
 import com.matalban.pollsystem.jwt.JwtUtils;
 import com.matalban.pollsystem.repositories.UserRepository;
 import com.matalban.pollsystem.services.AuthService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
-
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -40,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
-
+        log.info("Login started");
        Authentication authentication;
 
        try {
@@ -52,6 +53,7 @@ public class AuthServiceImpl implements AuthService {
            map.put("message", e.getMessage());
            map.put("status", false);
            return new LoginResponse(null, null);
+
 
        }
 
@@ -65,10 +67,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String register(RegistrationRequest registrationRequest) {
-        System.out.println("service Reg started");
+        log.info("Register started");
         if(userRepository.existsByUsername(registrationRequest.getUsername()))
             return "Impossibile creare l'utente";
-
 
         UserAccount user = new UserAccount();
         user.setUsername(registrationRequest.getUsername());
@@ -76,7 +77,6 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(registrationRequest.getEmail());
         userRepository.save(user);
 
-        System.out.println("service Reg executed");
         return "utente creato con successo";
     }
 }

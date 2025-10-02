@@ -9,14 +9,16 @@ import com.matalban.pollsystem.repositories.OptionRepository;
 import com.matalban.pollsystem.repositories.PollRepository;
 import com.matalban.pollsystem.repositories.VoteRepository;
 import com.matalban.pollsystem.services.OptionService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -79,22 +81,28 @@ public class OptionServiceImpl implements OptionService {
     public OptionDto updateOption(Integer pollId, Integer optionId, OptionDto optionDto) {
 
 
-        pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId+ " not found"));
+        Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId+ " not found"));
+        if(poll.getStatus().equals(Status.EXPIRED)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Poll expired");
+        }
         Option option = optionRepository.findById(optionId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id " + optionId + " not found"));
-        LocalDateTime now = LocalDateTime.now();
         option.setOptionName(optionDto.getMessage());
-        option.setCreatedAt(now.format(DateTimeFormatter.ISO_DATE_TIME));
+        option.setCreatedAt(new Date());
         optionRepository.save(option);
 
         return  optionMapper.optionToOptionDto(option);
     }
 
     @Override
+    @Transactional
     public OptionDto vote(Integer pollId, Integer optionId) {
 
         UserAccount userAccount = getLoggedUserAccount();
         //check he l'utente non sia il proprietario del poll
         Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"));
+
+        if(poll.getStatus().equals(Status.EXPIRED))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Poll expired");
 
 
         //il proprietario non può votare
@@ -103,19 +111,45 @@ public class OptionServiceImpl implements OptionService {
                 .equals(userAccount.getUsername()))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are the owner of the poll");
 
-        //creazione di un entità vote e salvataggio nella repo corretta
+
 
         Option option = optionRepository.findByPollIdAndId(pollId,optionId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id " + optionId + " not found"));
 
+        //creazione di un entità vote e salvataggio nella repo corretta
+
+        //controllare che non abbia già votato
+//        if (voteRepository.existsByUser_Id(userAccount.getId())){
+//            Vote vote = voteRepository.findAllByOption_Poll_Id().orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unexpected error"));
+//            vote.setOption(option);
+//            voteRepository.save(vote);
+//            return optionMapper.optionToOptionDto(option);
+//
+//
+//        }
+
+        //Se l'utente ha già votato il poll allora cambio la option del suo voto e return new voted option
+        List<Vote> existingVotes = voteRepository.findByUser_Id(userAccount.getId());
+
+        Optional<Vote> existingVoteForPoll = existingVotes.stream()
+                .filter(v -> v.getOption().getPoll().getId().equals(poll.getId()))
+                .findFirst(); // findFirst returns Optional<Vote>
+
+        if (existingVoteForPoll.isPresent()){
+            existingVoteForPoll.get().setOption(option);
+            voteRepository.save(existingVoteForPoll.get());
+            return  optionMapper.optionToOptionDto(option);
+        }
+
+
+        //l'utente non ha mai votato allora creo il voto
         Vote vote = new Vote();
         vote.setUser(userAccount);
         vote.setOption(option);
-        vote.setVotedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        vote.setVotedAt(new Date());
         voteRepository.save(vote);
-        if(poll.getStatus().equals(Status.ACTIVE)) {
-            poll.setStatus(Status.VOTED);
-            pollRepository.save(poll);
-        }
+        poll.setTotalVote(poll.getTotalVote() + 1);
+        pollRepository.save(poll);
+
 
 
         return optionMapper.optionToOptionDto(option);

@@ -59,7 +59,7 @@ public class PollServiceImpl implements PollService {
 
         savedPoll.setOwner(userAccount);
 
-        pollRepository.save(savedPoll);
+        savedPoll = pollRepository.save(savedPoll);
 
         return pollMapper.pollToPollDto(savedPoll);
 
@@ -92,7 +92,18 @@ public class PollServiceImpl implements PollService {
         UserAccount userAccount = (UserAccount) authentication.getPrincipal();
         if (!poll.getOwner().getUsername().equals(userAccount.getUsername()))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of this poll");
-
+//
+//        if(!poll.getOptions().isEmpty()) {
+//            poll.getOptions()
+//                    .stream()
+//                    .map(Option::getId)
+//                    .forEach(optionRepository::deleteById);
+//        }
+//
+//        if(poll.getStatus().equals(Status.VOTED)){
+//            voteRepository.deleteAllByOption_Poll_Id(poll.getId());
+//
+//        }
         pollRepository.delete(poll);
     }
 
@@ -102,7 +113,9 @@ public class PollServiceImpl implements PollService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Poll existingPoll = pollRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id" + id + " not found"));
 
-        if(!existingPoll.getStatus().equals(Status.ACTIVE))
+        if (existingPoll.getStatus().equals(Status.EXPIRED))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Poll has expired");
+        if(existingPoll.getTotalVote() != 0)
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Some options in the poll have been voted, the poll cannot be updated");
 
         UserAccount userAccount = (UserAccount) authentication.getPrincipal();
