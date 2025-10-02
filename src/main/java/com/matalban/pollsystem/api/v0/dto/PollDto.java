@@ -25,8 +25,6 @@ public class PollDto {
     @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private Date expiresAt;
-
-
-    @NotNull
+    
     private Status status;
 }
