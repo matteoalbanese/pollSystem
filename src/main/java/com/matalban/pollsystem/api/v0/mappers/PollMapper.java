@@ -3,6 +3,7 @@ package com.matalban.pollsystem.api.v0.mappers;
 
 import com.matalban.pollsystem.api.v0.dto.PollDto;
 import com.matalban.pollsystem.domain.Poll;
+import com.matalban.pollsystem.domain.Status;
 import com.matalban.pollsystem.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -39,11 +40,10 @@ public class PollMapper {
         if (pollDto == null) {return null;}
 
         Poll poll = new Poll();
-        //TODO check
         poll.setId(pollDto.getId());
         poll.setQuestion(pollDto.getQuestion());
         poll.setExpirationDate(pollDto.getExpiresAt());
-        poll.setStatus(pollDto.getStatus());
+        poll.setStatus(Status.ACTIVE);
 
         poll.setOwner(userRepository.findByUsername(pollDto.getOwner()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
 
