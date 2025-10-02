@@ -3,6 +3,7 @@ package com.matalban.pollsystem.controllers;
 import com.matalban.pollsystem.api.v0.dto.OptionDto;
 import com.matalban.pollsystem.api.v0.dto.VoteDto;
 import com.matalban.pollsystem.services.OptionService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,8 @@ public class OptionController {
     }
 
     @PostMapping("/{id}/options")
-    public ResponseEntity<OptionDto> insertOption(@PathVariable Integer id, @RequestBody OptionDto optionDto){
+    public ResponseEntity<OptionDto> insertOption(@PathVariable Integer id,
+                                                  @Valid @RequestBody OptionDto optionDto){
         return new ResponseEntity<>(optionService.insertOption(id, optionDto), HttpStatus.OK);
     }
 
@@ -30,7 +32,9 @@ public class OptionController {
     }
 
     @PutMapping("/{id}/options/{optionId}")
-    public ResponseEntity<OptionDto> updateOption(@PathVariable Integer id,@PathVariable Integer optionId, @RequestBody OptionDto optionDto){
+    public ResponseEntity<OptionDto> updateOption(@PathVariable Integer id,
+                                                  @PathVariable Integer optionId,
+                                                  @Valid @RequestBody OptionDto optionDto){
         return new ResponseEntity<>(optionService.updateOption(id,optionId, optionDto), HttpStatus.OK);
     }
 

@@ -7,6 +7,7 @@ import com.matalban.pollsystem.domain.Status;
 import com.matalban.pollsystem.domain.UserAccount;
 import com.matalban.pollsystem.repositories.PollRepository;
 import com.matalban.pollsystem.services.PollService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-
+@Slf4j
 @Service
 public class PollServiceImpl implements PollService {
 
@@ -38,7 +39,7 @@ public class PollServiceImpl implements PollService {
         // posso controllare che l'owner inserito corrisponda all'utente che sta facendo l'operazione
 
 
-        System.out.println("createPoll 1 ");
+        log.info("pollCreate started");
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

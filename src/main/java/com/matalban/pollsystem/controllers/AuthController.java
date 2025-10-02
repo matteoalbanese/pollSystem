@@ -7,6 +7,7 @@ import com.matalban.pollsystem.api.v0.dto.RegistrationRequest;
 import com.matalban.pollsystem.api.v0.dto.ValidationErrorResponse;
 import com.matalban.pollsystem.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,18 +29,19 @@ public class AuthController {
     }
 
     @PostMapping("/registration")
-    public ResponseEntity<?> registerUser(@RequestBody RegistrationRequest registrationRequest, HttpServletRequest request) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest registrationRequest,
+                                          HttpServletRequest request) {
         System.out.println("controller Reg started");
         String message = authService.register(registrationRequest);
         if(message.equals("Impossibile creare l'utente")){
-            return new ResponseEntity<>(new ValidationErrorResponse(new Date(),message,request.getRequestURI()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ValidationErrorResponse(new Date(),"403",message,request.getRequestURI()), HttpStatus.BAD_REQUEST);
         }
         System.out.println("controller Reg successfully executed");
         return new ResponseEntity<>("utente creato con successo", HttpStatus.OK);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest ){
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest ){
         LoginResponse response = authService.login(loginRequest);
 
         return new ResponseEntity<>(response , HttpStatus.OK);

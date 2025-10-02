@@ -14,6 +14,7 @@ public class ValidationErrorResponse {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private Date timestamp;
+    private String status;
     private String message;
     private String path;
 }
