@@ -10,6 +10,7 @@ import com.matalban.pollsystem.repositories.PollRepository;
 import com.matalban.pollsystem.repositories.VoteRepository;
 import com.matalban.pollsystem.services.OptionService;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-
+@Slf4j
 @Service
 public class OptionServiceImpl implements OptionService {
 
@@ -40,7 +41,7 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     public OptionDto insertOption(Integer pollId, OptionDto optionDto) {
-
+        log.info("Insert poll option started");
         Poll poll = pollRepository.findById(pollId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"));
         if (!poll.getOwner()
@@ -64,6 +65,7 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public void deleteOption(Integer pollId, Integer optionId) {
 
+        log.info("Delete poll option started");
         Poll poll = pollRepository.findById(pollId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"));
         if (!poll.getOwner()
@@ -87,7 +89,7 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public OptionDto updateOption(Integer pollId, Integer optionId, OptionDto optionDto) {
 
-
+        log.info("Update poll option started");
         Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId+ " not found"));
         if(poll.getStatus().equals(Status.EXPIRED)){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Poll expired");
@@ -108,6 +110,7 @@ public class OptionServiceImpl implements OptionService {
     @Transactional
     public OptionDto vote(Integer pollId, Integer optionId) {
 
+        log.info("Vote poll option started");
         UserAccount userAccount = getLoggedUserAccount();
         //check he l'utente non sia il proprietario del poll
         Poll poll = pollRepository.findById(pollId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"));
@@ -158,7 +161,7 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     public VoteDto getVote(Integer pollId) {
-
+        log.info("Get vote poll option started");
         Vote vote = voteRepository.
                 findByOption_Poll_IdAndUser_Id(pollId, getLoggedUserAccount().
                         getId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll or option not found "));
@@ -171,7 +174,7 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     public OptionDto getOption(Integer pollId, Integer optionId) {
-
+        log.info("Get option poll option started");
         if (!pollRepository.existsById(pollId))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found");
 
