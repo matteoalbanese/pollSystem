@@ -40,6 +40,7 @@ public class Batch {
          //Set the status = EXPIRED and the winner if expDate < now
          for (Poll poll : polls) {
              if(poll.getExpirationDate().before(new Date())){
+                 edited = true;
                 poll.setStatus(Status.EXPIRED);
                 Option option = getWinner(poll);
                 if (option == null) {
@@ -50,7 +51,7 @@ public class Batch {
                 optionRepository.save(option);
                 log.info("Option winner:{} ",  option.getOptionName());
                 log.info("Poll{} expired, winner option: {}with id:{}", poll.getId(), option.getOptionName(), option.getId());
-                edited = true;
+
              }
          }
          if (edited) {
