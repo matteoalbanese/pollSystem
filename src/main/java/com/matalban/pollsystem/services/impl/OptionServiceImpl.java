@@ -41,19 +41,20 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public OptionDto insertOption(Integer pollId, OptionDto optionDto) {
 
-        if (!pollRepository.findById(pollId)
-                .orElseThrow()
-                .getOwner()
+        Poll poll = pollRepository.findById(pollId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"));
+        if (!poll.getOwner()
                 .getUsername()
                 .equals(getLoggedUserAccount().getUsername()))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of the poll");
 
         Option option = optionMapper.optionDtoToOption(optionDto);
 
-        option.setPoll(
-                pollRepository.findById(pollId)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"))
-        );
+        if (poll.getStatus().equals(Status.EXPIRED)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Poll expired");
+        }
+
+        option.setPoll(poll);
 
         optionRepository.save(option);
 
@@ -63,16 +64,22 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public void deleteOption(Integer pollId, Integer optionId) {
 
-
-        //check the user is the owner
-        if (!pollRepository.findById(pollId)
-                .orElseThrow()
-                .getOwner()
+        Poll poll = pollRepository.findById(pollId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll with id " + pollId + " not found"));
+        if (!poll.getOwner()
                 .getUsername()
                 .equals(getLoggedUserAccount().getUsername()))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of the poll");
+
+        if(poll.getStatus().equals(Status.EXPIRED)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Poll expired");
+        }
+
         if (!optionRepository.existsById(optionId))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id "+ optionId + " not found");
+
+        if(voteRepository.existsByOption_Id(optionId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Option with id "+ optionId + " already voted");
 
         optionRepository.deleteById(optionId);
     }
@@ -86,6 +93,10 @@ public class OptionServiceImpl implements OptionService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Poll expired");
         }
         Option option = optionRepository.findById(optionId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id " + optionId + " not found"));
+
+        if(voteRepository.existsByOption_Id(optionId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Option with id "+ optionId + " already voted");
+
         option.setOptionName(optionDto.getMessage());
         option.setCreatedAt(new Date());
         optionRepository.save(option);
@@ -115,17 +126,6 @@ public class OptionServiceImpl implements OptionService {
 
         Option option = optionRepository.findByPollIdAndId(pollId,optionId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Option with id " + optionId + " not found"));
 
-        //creazione di un entità vote e salvataggio nella repo corretta
-
-        //controllare che non abbia già votato
-//        if (voteRepository.existsByUser_Id(userAccount.getId())){
-//            Vote vote = voteRepository.findAllByOption_Poll_Id().orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unexpected error"));
-//            vote.setOption(option);
-//            voteRepository.save(vote);
-//            return optionMapper.optionToOptionDto(option);
-//
-//
-//        }
 
         //Se l'utente ha già votato il poll allora cambio la option del suo voto e return new voted option
         List<Vote> existingVotes = voteRepository.findByUser_Id(userAccount.getId());
