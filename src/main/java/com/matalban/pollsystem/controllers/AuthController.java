@@ -31,12 +31,10 @@ public class AuthController {
     @PostMapping("/registration")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest registrationRequest,
                                           HttpServletRequest request) {
-        System.out.println("controller Reg started");
         String message = authService.register(registrationRequest);
         if(message.equals("Impossibile creare l'utente")){
-            return new ResponseEntity<>(new ValidationErrorResponse(new Date(),"403",message,request.getRequestURI()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ValidationErrorResponse(new Date(),"400",message,request.getRequestURI()), HttpStatus.BAD_REQUEST);
         }
-        System.out.println("controller Reg successfully executed");
         return new ResponseEntity<>("utente creato con successo", HttpStatus.OK);
     }
 

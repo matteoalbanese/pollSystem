@@ -8,7 +8,10 @@ import com.matalban.pollsystem.domain.UserAccount;
 import com.matalban.pollsystem.jwt.JwtUtils;
 import com.matalban.pollsystem.repositories.UserRepository;
 import com.matalban.pollsystem.services.AuthService;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,12 +53,8 @@ public class AuthServiceImpl implements AuthService {
                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
                            loginRequest.getPassword()));
        }catch(AuthenticationException e){
-           Map<String, Object> map = new HashMap<>();
-           map.put("message", e.getMessage());
-           map.put("status", false);
-           return new LoginResponse(null, null);
 
-
+           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Login fallito");
        }
 
        SecurityContextHolder.getContext().setAuthentication(authentication);

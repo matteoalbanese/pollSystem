@@ -159,9 +159,14 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public VoteDto getVote(Integer pollId) {
 
-        return voteMapper.voteToVoteDto(voteRepository.findByOption_Poll_IdAndUser_Id(pollId, getLoggedUserAccount().getId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll or option not found ")));
+        Vote vote = voteRepository.
+                findByOption_Poll_IdAndUser_Id(pollId, getLoggedUserAccount().
+                        getId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll or option not found "));
 
-
+        if(vote == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vote not found for the current user");
+        }
+        return voteMapper.voteToVoteDto(vote);
     }
 
     @Override
